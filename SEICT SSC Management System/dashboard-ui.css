@@ -1,0 +1,33 @@
+/* dashboard-ui.css
+   Compatibility layer.
+   Most shared styling now lives in: css/portal-styles.css
+   This file only keeps legacy component overrides that aren't covered yet.
+*/
+
+/* Keep feed-layout for any legacy pages that use it */
+.feed-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 30px;
+}
+
+/* ROLE SPECIFIC: Faculty Module Highlights (legacy) */
+.faculty-action-card {
+    background: linear-gradient(135deg, #800000 0%, #4a0000 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.faculty-action-card .btn-light {
+    background: white;
+    color: #800000;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 15px;
+    text-decoration: none;
+}
+

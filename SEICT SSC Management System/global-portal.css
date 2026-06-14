@@ -1,0 +1,400 @@
+/* ==========================================================================
+   SEICT Portal - Unified Login + Portal Branding System
+   ========================================================================== */
+
+   :root {
+    --primary-maroon: #800000;
+    --primary-maroon-dark: #4a0000;
+    --primary-maroon-light: rgba(128, 0, 0, 0.10);
+    --navy-sidebar: #0a192f;
+    --light-grey-bg: #fcfcfc;
+
+    --text-primary: #1a1a1a;
+    --muted-text: #6b7280;
+
+    --card-shadow: 0 10px 30px rgba(16, 24, 40, 0.12);
+    --focus-ring: 0 0 0 3px rgba(128, 0, 0, 0.22);
+
+    --radius-sm: 10px;
+    --radius-md: 14px;
+
+    --header-height: 70px;
+    --footer-height: 100px;
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;
+}
+
+html, body { 
+    height: 100%; 
+    background: var(--light-grey-bg);
+}
+
+body {
+    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+}
+
+a { 
+    color: inherit; 
+    text-decoration: none;
+}
+
+a:focus, button:focus, input:focus, textarea:focus, select:focus {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+/* ==========================================================================
+   PERSISTENT HEADER & FOOTER
+   ========================================================================== */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
+    background: var(--primary-maroon);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    z-index: 1050;
+}
+
+.header-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.header-logo {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
+.header-text h1 {
+    margin: 0;
+    letter-spacing: 4px;
+    font-size: 1.55rem;
+    font-weight: 800;
+}
+
+.header-text p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.portal-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--footer-height);
+    background: #0f172a;
+    color: rgba(255,255,255,0.9);
+    padding: 20px 30px;
+    z-index: 1050;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.10);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.footer-top-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.footer-link {
+    color: #fff;
+    font-weight: 700;
+}
+
+.footer-details p {
+    margin: 4px 0 0;
+    opacity: 0.75;
+    font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   LOGIN WORKSPACE (Perfectly Centered Screen)
+   ========================================================================== */
+.login-wrapper {
+    flex: 1 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--header-height) + 30px) 14px calc(var(--footer-height) + 30px);
+    min-height: 100vh;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 480px;
+    background: #fff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    padding: 30px;
+    border: 1px solid rgba(16, 24, 40, 0.08);
+}
+
+.login-box h2 {
+    margin: 0 0 18px 0;
+    color: var(--primary-maroon);
+    font-weight: 900;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.login-box form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+label {
+    font-weight: 800;
+    font-size: 0.88rem;
+    color: #2b2b2b;
+    margin-top: 4px;
+}
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(16, 24, 40, 0.18);
+    background: #fff;
+    font-size: 0.95rem;
+}
+
+button {
+    margin-top: 8px;
+    background: var(--primary-maroon);
+    color: #fff;
+    border: 1px solid var(--primary-maroon);
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 900;
+    cursor: pointer;
+}
+
+button:hover { background: var(--primary-maroon-dark); border-color: var(--primary-maroon-dark); }
+
+/* ==========================================================================
+   DASHBOARD WORKSPACE (Top-Aligned Native Layout Grid)
+   ========================================================================== */
+.dashboard-container {
+    width: 100%;
+    padding-top: calc(var(--header-height) + 30px);
+    padding-bottom: calc(var(--footer-height) + 40px);
+    min-height: 100vh;
+}
+
+/* Dynamic Sidebar Navigation Menu Overrides */
+.sidebar-nav-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.sidebar-nav-block a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav-block a:hover {
+    background: var(--primary-maroon-light);
+    color: var(--primary-maroon);
+}
+
+.sidebar-nav-block a i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT CONSTRAINTS
+   ========================================================================== */
+@media (max-width: 991px) {
+    header { padding: 0 16px; }
+    .header-logo { height: 38px; }
+    .header-text h1 { font-size: 1.3rem; letter-spacing: 2px; }
+    .header-text p { display: none; }
+    
+    .portal-footer {
+        height: auto;
+        position: relative;
+        padding: 20px 16px;
+    }
+    .footer-top-line {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .dashboard-container {
+        padding-bottom: 30px;
+    }
+}
+
+/* ==========================================================================
+   GATEWAY PORTAL SELECTION PAGE (index.php)
+   ========================================================================== */
+   .gateway-container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--header-height) + 40px) 20px calc(var(--footer-height) + 40px);
+    min-height: 100vh;
+    width: 100%;
+}
+
+.gateway-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    width: 100%;
+    max-width: 1140px;
+    margin-top: 30px;
+}
+
+/* Base Card Styling with Image Support */
+.gateway-card {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    background-color: #1e293b; /* Fallback deep color */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none !important;
+}
+
+/* Linear Gradient Overlay for Rich Contrast & Readability */
+.gateway-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.75) 100%);
+    z-index: 1;
+    transition: opacity 0.2s ease;
+}
+
+.gateway-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.gateway-card:hover::before {
+    background: linear-gradient(135deg, rgba(128, 0, 0, 0.95) 0%, rgba(15, 23, 42, 0.8) 100%);
+}
+
+/* Card Content Layering */
+.gateway-card-content {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.gateway-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gateway-card h3 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 10px 0;
+}
+
+.gateway-card p {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.gateway-action {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-top: auto;
+}
+
+.gateway-action i {
+    transition: transform 0.2s ease;
+}
+
+.gateway-card:hover .gateway-action i {
+    transform: translateX(5px);
+}
+
+/* Responsive Grid Adaptation */
+@media (max-width: 991px) {
+    .gateway-grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 768px;
+    }
+}
+
+@media (max-width: 650px) {
+    .gateway-grid {
+        grid-template-columns: 1fr;
+        max-width: 380px;
+        gap: 16px;
+    }
+    .gateway-card {
+        height: 280px;
+        padding: 20px;
+    }
+}
