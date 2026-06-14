@@ -1,0 +1,18 @@
+{
+    "3": {
+        "image": "uploads/profiles/profile_20260614_203514_11a24e226030.jpg",
+        "full_name": "sebastian",
+        "course": "Administrator",
+        "year_level": "SEICT",
+        "bio": "",
+        "updated_at": "2026-06-14T20:35:14+02:00"
+    },
+    "1": {
+        "full_name": "Charmaine Fernandez",
+        "course": "BSCPE",
+        "year_level": "2nd Year",
+        "dean_list": true,
+        "bio": "Chill Guy",
+        "updated_at": "2026-06-14T21:14:53+02:00"
+    }
+}

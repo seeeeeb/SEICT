@@ -135,6 +135,12 @@ $eventPosts = array_values(array_filter($posts, static fn ($post) => in_array(st
                     </form>
                 </div>
 
+                <div class="portal-card p-4 mb-4" id="attendance">
+                    <h3 class="h5 text-maroon fw-bold mb-2"><i class="fas fa-user-check me-2"></i>Attendance & Support</h3>
+                    <p class="text-muted small mb-3">Use this section as the live attendance and mentoring support hub for faculty updates.</p>
+                    <div class="pending-action-item"><div><strong class="text-dark d-block small">Faculty Office Hours</strong><span class="text-muted" style="font-size: 0.8rem;">Students can consult with faculty through the timetable and mentoring channels.</span></div><span class="action-badge badge-review">Open</span></div>
+                </div>
+
                 <div class="row g-4 mb-4" id="events">
                     <?php foreach ([
                         ['Upcoming Events', 'Registration windows and department activities queued for publication.'],

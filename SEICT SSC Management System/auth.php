@@ -264,6 +264,115 @@ function posts_storage_path(): string
     return __DIR__ . '/data/posts.json';
 }
 
+function profiles_storage_path(): string
+{
+    return __DIR__ . '/data/profiles.json';
+}
+
+function ensure_profiles_storage(): void
+{
+    $dir = dirname(profiles_storage_path());
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    if (!is_file(profiles_storage_path())) {
+        file_put_contents(profiles_storage_path(), json_encode([], JSON_PRETTY_PRINT));
+    }
+}
+
+function load_profiles(): array
+{
+    ensure_profiles_storage();
+    $raw = file_get_contents(profiles_storage_path());
+    $profiles = json_decode((string) $raw, true);
+    return is_array($profiles) ? $profiles : [];
+}
+
+function save_profiles(array $profiles): void
+{
+    ensure_profiles_storage();
+    file_put_contents(profiles_storage_path(), json_encode($profiles, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+}
+
+function current_profile_data(int $userId): array
+{
+    $profiles = load_profiles();
+    return is_array($profiles[$userId] ?? null) ? $profiles[$userId] : [];
+}
+
+function save_uploaded_profile_image(string $field, string $redirect): ?string
+{
+    if (!isset($_FILES[$field]) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($_FILES[$field]['tmp_name'])) {
+        redirect($redirect . '?profile_error=upload');
+    }
+
+    if ((int) $_FILES[$field]['size'] > 2 * 1024 * 1024) {
+        redirect($redirect . '?profile_error=too_large');
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = $finfo->file($_FILES[$field]['tmp_name']);
+    $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+
+    if (!isset($allowed[$mime])) {
+        redirect($redirect . '?profile_error=file_type');
+    }
+
+    $uploadDir = __DIR__ . '/uploads/profiles';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $filename = 'profile_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.' . $allowed[$mime];
+    $destination = $uploadDir . '/' . $filename;
+
+    if (!move_uploaded_file($_FILES[$field]['tmp_name'], $destination)) {
+        redirect($redirect . '?profile_error=upload');
+    }
+
+    return 'uploads/profiles/' . $filename;
+}
+
+function user_posts_for_current_user(int $userId): array
+{
+    $posts = load_posts();
+    return array_values(array_filter($posts, static fn($post) => (string) ($post['author_id'] ?? '') === (string) $userId));
+}
+
+function update_post_by_id(string $postId, array $data): bool
+{
+    $posts = load_posts();
+    foreach ($posts as &$post) {
+        if ((string) ($post['id'] ?? '') === $postId) {
+            $post['title'] = clean_string($data['title'] ?? ($post['title'] ?? 'SEICT Update'), 160);
+            $post['content'] = clean_string($data['content'] ?? ($post['content'] ?? ''), 5000);
+            $post['category'] = clean_string($data['category'] ?? ($post['category'] ?? 'announcement'), 80);
+            $post['deadline'] = isset($data['deadline']) ? clean_string((string) $data['deadline'], 40) : ($post['deadline'] ?? null);
+            $post['updated_at'] = date('c');
+            save_posts($posts);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function delete_post_by_id(string $postId): bool
+{
+    $posts = load_posts();
+    $filtered = array_values(array_filter($posts, static fn($post) => (string) ($post['id'] ?? '') !== $postId));
+    if (count($filtered) === count($posts)) {
+        return false;
+    }
+
+    save_posts($filtered);
+    return true;
+}
+
 function events_joins_storage_path(): string
 {
     return __DIR__ . '/data/events_joins.json';
@@ -408,6 +517,72 @@ function save_uploaded_post_image(string $field, string $redirect): ?string
     return 'uploads/posts/' . $filename;
 }
 
+function mentorship_applications_storage_path(): string
+{
+    return __DIR__ . '/data/mentorship_applications.json';
+}
+
+function ojt_applications_storage_path(): string
+{
+    return __DIR__ . '/data/ojt_applications.json';
+}
+
+function ensure_student_application_storage(string $path): void
+{
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
+    if (!is_file($path)) {
+        file_put_contents($path, json_encode([], JSON_PRETTY_PRINT));
+    }
+}
+
+function load_student_applications(string $path): array
+{
+    ensure_student_application_storage($path);
+    $raw = file_get_contents($path);
+    $decoded = json_decode((string) $raw, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function save_student_applications(string $path, array $applications): void
+{
+    ensure_student_application_storage($path);
+    file_put_contents($path, json_encode(array_values($applications), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
+}
+
+function submit_mentorship_application(array $data): void
+{
+    $applications = load_student_applications(mentorship_applications_storage_path());
+    $applications[] = [
+        'id' => bin2hex(random_bytes(6)),
+        'student_id' => (int) ($data['student_id'] ?? 0),
+        'student_name' => clean_string($data['student_name'] ?? '', 120),
+        'course' => clean_string($data['course'] ?? '', 120),
+        'year_level' => clean_string($data['year_level'] ?? '', 40),
+        'dean_list' => !empty($data['dean_list']),
+        'interest' => clean_string($data['interest'] ?? '', 500),
+        'created_at' => date('c'),
+    ];
+    save_student_applications(mentorship_applications_storage_path(), $applications);
+}
+
+function submit_ojt_application(array $data): void
+{
+    $applications = load_student_applications(ojt_applications_storage_path());
+    $applications[] = [
+        'id' => bin2hex(random_bytes(6)),
+        'student_id' => (int) ($data['student_id'] ?? 0),
+        'student_name' => clean_string($data['student_name'] ?? '', 120),
+        'course' => clean_string($data['course'] ?? '', 120),
+        'preferred_company' => clean_string($data['preferred_company'] ?? '', 160),
+        'skills' => clean_string($data['skills'] ?? '', 500),
+        'created_at' => date('c'),
+    ];
+    save_student_applications(ojt_applications_storage_path(), $applications);
+}
+
 function create_feed_post(array $data): void
 {
     $posts = load_posts();
@@ -421,6 +596,7 @@ function create_feed_post(array $data): void
         'content' => clean_string($data['content'] ?? '', 5000),
         'category' => clean_string($data['category'] ?? 'announcement', 80),
         'author' => clean_string($_SESSION['username'] ?? 'SEICT', 120),
+        'author_id' => (int) ($_SESSION['user_id'] ?? 0),
         'author_role' => clean_string($_SESSION['role'] ?? 'admin', 30),
         'attachment' => $data['attachment'] ?? null,
         'pinned' => !empty($data['pinned']),

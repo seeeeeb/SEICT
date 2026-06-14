@@ -1,4 +1,4 @@
-student <?php
+<?php
 require_once __DIR__ . '/../auth.php';
 check_auth(['student']);
 
@@ -17,6 +17,10 @@ $posts = array_slice($allPosts, ($page - 1) * $perPage, $perPage);
     <link rel="stylesheet" href="../css/portal-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .feed-action-btn .action-count { margin-left: 6px; font-weight: 700; color: var(--primary-maroon); }
+        .feed-action-btn.is-active { background: rgba(128,0,0,0.08); color: var(--primary-maroon); }
+        .feed-action-btn.comment-btn { color: #1d4ed8; }
+        .feed-action-btn.share-btn { color: #0f766e; }
         .feed-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
         @media (max-width: 992px) { .feed-layout { grid-template-columns: 1fr; } }
         .feed-post-card { background: #fff; border: 1px solid rgba(16, 24, 40, 0.08); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: transform 0.16s ease, box-shadow 0.16s ease; }
@@ -66,16 +70,23 @@ $posts = array_slice($allPosts, ($page - 1) * $perPage, $perPage);
 
             <div class="feed-layout">
                 <div class="feed-main-stream">
-                    <div class="widget-frame" style="margin-bottom: 24px; padding: 20px;">
-                        <label class="composer-label" style="margin-bottom: 12px; font-weight: 700;">SEICT Community Feed</label>
-                        <div class="composer-form">
-                            <textarea class="composer-input" rows="3" style="resize: none; padding: 12px; border-radius: 8px; background: #f8fafc;" placeholder="Student posting is reserved for a future moderation workflow." disabled></textarea>
-                            <div class="composer-actions" style="justify-content: flex-end; margin-top: 12px;">
-                                <button class="btn-maroon btn-post" style="padding: 10px 24px; border-radius: 8px; font-weight: 600;" disabled>
+                    <div class="widget-frame" id="announcements" style="margin-bottom: 24px; padding: 20px;">
+                        <label class="composer-label" style="margin-bottom: 12px; font-weight: 700;">Publish to the SEICT Community Feed</label>
+                        <form action="../process_post.php" method="post" enctype="multipart/form-data" class="composer-form">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="category" value="announcement">
+                            <label class="composer-label" for="student-post-title">Title</label>
+                            <input id="student-post-title" name="title" class="composer-input" maxlength="160" placeholder="What would you like to share?" required>
+                            <label class="composer-label" for="student-post-content">Post Content</label>
+                            <textarea id="student-post-content" name="content" class="composer-input" rows="4" placeholder="Write your student announcement, update, or event notice here..." required></textarea>
+                            <div class="composer-actions" style="justify-content: flex-end; margin-top: 12px; gap: 10px; flex-wrap: wrap;">
+                                <input type="file" name="media" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="composer-input" style="max-width: 280px; flex: 1 1 220px;">
+                                <label class="d-inline-flex align-items-center gap-2 small fw-bold text-muted"><input type="checkbox" name="pinned" value="1"> Pinned</label>
+                                <button class="btn-maroon btn-post" type="submit" style="padding: 10px 24px; border-radius: 8px; font-weight: 600;">
                                     <i class="fas fa-paper-plane"></i> Publish
                                 </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
 
                     <?php if (empty($posts)): ?>
@@ -155,9 +166,9 @@ $posts = array_slice($allPosts, ($page - 1) * $perPage, $perPage);
                                         </form>
                                     <?php endif; ?>
                                 <?php else: ?>
-                                    <button class="feed-action-btn" type="button"><i class="far fa-thumbs-up"></i> Like</button>
-                                    <button class="feed-action-btn" type="button"><i class="far fa-comment"></i> Comment</button>
-                                    <button class="feed-action-btn" type="button"><i class="fas fa-share"></i> Share</button>
+                                    <button class="feed-action-btn like-btn" type="button" data-post-id="<?php echo e($postId); ?>" onclick="toggleLike(this)"><i class="far fa-thumbs-up"></i> Like <span class="action-count">0</span></button>
+                                    <button class="feed-action-btn comment-btn" type="button" onclick="addComment('<?php echo e($postId); ?>')"><i class="far fa-comment"></i> Comment</button>
+                                    <button class="feed-action-btn share-btn" type="button" onclick="sharePost('<?php echo e($postId); ?>')"><i class="fas fa-share"></i> Share</button>
                                 <?php endif; ?>
                                 </div>
                             </article>
@@ -190,7 +201,7 @@ $posts = array_slice($allPosts, ($page - 1) * $perPage, $perPage);
                         <?php endforeach; ?>
                     </div>
 
-                    <div class="right-sidebar-widget" style="background: linear-gradient(to bottom right, #fff, #fafafa);">
+                    <div class="right-sidebar-widget" id="events" style="background: linear-gradient(to bottom right, #fff, #fafafa);">
                         <h3 class="widget-title" style="font-size: 1.1rem; margin-bottom: 12px;">Upcoming Events</h3>
                         <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 14px; line-height: 1.4;">Announcements, events, and competitions are merged into the main feed and sorted by newest first.</p>
                         <a href="#events" class="btn-maroon" style="text-decoration: none; display: block; text-align: center; font-size: 0.85rem; padding: 10px; border-radius: 6px;">View Feed</a>
@@ -199,6 +210,39 @@ $posts = array_slice($allPosts, ($page - 1) * $perPage, $perPage);
             </div>
         </main>
     </div>
+
+    <script>
+        function toggleLike(button) {
+            const count = button.querySelector('.action-count');
+            const liked = button.classList.toggle('is-active');
+            const value = parseInt(count.textContent || '0', 10) + (liked ? 1 : -1);
+            count.textContent = Math.max(0, value);
+            const icon = button.querySelector('i');
+            icon.className = liked ? 'fas fa-thumbs-up' : 'far fa-thumbs-up';
+        }
+
+        function addComment(postId) {
+            const note = window.prompt('Add a quick comment for this post:', 'Thanks for the update!');
+            if (!note) {
+                return;
+            }
+            const summary = 'Comment saved for post ' + postId + ': ' + note;
+            window.alert(summary);
+        }
+
+        function sharePost(postId) {
+            const shareText = 'SEICT community update #' + postId + ' is ready to share.';
+            if (navigator.share) {
+                navigator.share({ title: 'SEICT Community Update', text: shareText }).catch(() => {});
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareText).then(() => window.alert('Share text copied to clipboard.'));
+                return;
+            }
+            window.alert(shareText);
+        }
+    </script>
 
     <footer class="portal-footer">
         <div class="footer-top-line">

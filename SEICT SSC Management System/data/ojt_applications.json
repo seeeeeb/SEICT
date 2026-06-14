@@ -1,0 +1,11 @@
+[
+    {
+        "id": "7e76bb4b06f9",
+        "student_id": 1,
+        "student_name": "Charmaine Dela Cruz",
+        "course": "BSIT",
+        "preferred_company": "ABC Tech",
+        "skills": "PHP, MySQL, UI/UX",
+        "created_at": "2026-06-14T21:13:54+02:00"
+    }
+]

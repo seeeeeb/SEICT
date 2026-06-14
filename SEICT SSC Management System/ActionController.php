@@ -234,9 +234,119 @@ switch ($action) {
         unjoin_event($postId, (int) $_SESSION['user_id']);
         redirect('student/student_dashboard.php?success=unjoined#events');
 
+    case 'save_profile':
+        require_post();
+        protectPage(['admin', 'faculty', 'student']);
+
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        if ($userId <= 0) {
+            redirect('index.php?error=invalid');
+        }
+
+        $name = clean_string($_POST['full_name'] ?? ($_POST['username'] ?? ''), 120);
+        $course = clean_string($_POST['course'] ?? '', 120);
+        $year_level = clean_string($_POST['year_level'] ?? '', 40);
+        $dean_list = !empty($_POST['dean_list']);
+        $bio = clean_string($_POST['bio'] ?? '', 500);
+        $attachment = save_uploaded_profile_image('profile_image', redirect_back_for_role());
+
+        $profiles = load_profiles();
+        $profile = $profiles[$userId] ?? [];
+        if ($attachment !== null) {
+            $profile['image'] = $attachment;
+        }
+        $profile['full_name'] = $name;
+        $profile['course'] = $course;
+        $profile['year_level'] = $year_level;
+        $profile['dean_list'] = $dean_list;
+        $profile['bio'] = $bio;
+        $profile['updated_at'] = date('c');
+        $profiles[$userId] = $profile;
+        save_profiles($profiles);
+
+        redirect(redirect_back_for_role() . '?profile_saved=1');
+
+    case 'edit_post':
+        require_post();
+        protectPage(['admin', 'faculty', 'student']);
+
+        $postId = clean_string($_POST['post_id'] ?? '', 100);
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $post = null;
+        foreach (load_posts() as $candidate) {
+            if ((string) ($candidate['id'] ?? '') === $postId && (int) ($candidate['author_id'] ?? 0) === $userId) {
+                $post = $candidate;
+                break;
+            }
+        }
+
+        if ($post === null) {
+            redirect(redirect_back_for_role() . '?error=invalid_post');
+        }
+
+        $title = clean_string($_POST['title'] ?? ($post['title'] ?? 'SEICT Update'), 160);
+        $content = clean_string($_POST['content'] ?? ($post['content'] ?? ''), 5000);
+        $category = clean_string($_POST['category'] ?? ($post['category'] ?? 'announcement'), 80);
+        $deadline = clean_string($_POST['deadline'] ?? ($post['deadline'] ?? ''), 40);
+
+        update_post_by_id($postId, ['title' => $title, 'content' => $content, 'category' => $category, 'deadline' => $deadline]);
+        redirect(redirect_back_for_role() . '?profile_saved=1');
+
+    case 'delete_post':
+        require_post();
+        protectPage(['admin', 'faculty', 'student']);
+
+        $postId = clean_string($_POST['post_id'] ?? '', 100);
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $post = null;
+        foreach (load_posts() as $candidate) {
+            if ((string) ($candidate['id'] ?? '') === $postId && (int) ($candidate['author_id'] ?? 0) === $userId) {
+                $post = $candidate;
+                break;
+            }
+        }
+
+        if ($post === null) {
+            redirect(redirect_back_for_role() . '?error=invalid_post');
+        }
+
+        delete_post_by_id($postId);
+        redirect(redirect_back_for_role() . '?profile_saved=1');
+
+    case 'apply_mentorship':
+        require_post();
+        protectPage(['student']);
+
+        $profile = current_profile_data((int) ($_SESSION['user_id'] ?? 0));
+        submit_mentorship_application([
+            'student_id' => (int) ($_SESSION['user_id'] ?? 0),
+            'student_name' => $profile['full_name'] ?? ($_SESSION['username'] ?? 'Student'),
+            'course' => $profile['course'] ?? '',
+            'year_level' => $profile['year_level'] ?? '',
+            'dean_list' => !empty($profile['dean_list']),
+            'interest' => clean_string($_POST['interest'] ?? '', 500),
+        ]);
+
+        redirect('student/mentorship.php?success=application_sent');
+
+    case 'apply_ojt':
+        require_post();
+        protectPage(['student']);
+
+        $profile = current_profile_data((int) ($_SESSION['user_id'] ?? 0));
+        submit_ojt_application([
+            'student_id' => (int) ($_SESSION['user_id'] ?? 0),
+            'student_name' => $profile['full_name'] ?? ($_SESSION['username'] ?? 'Student'),
+            'course' => $profile['course'] ?? '',
+            'preferred_company' => clean_string($_POST['preferred_company'] ?? '', 160),
+            'skills' => clean_string($_POST['skills'] ?? '', 500),
+        ]);
+
+        redirect('student/ojt.php?success=application_sent');
+
     case 'create_post':
         require_post();
-        protectPage(['admin', 'faculty']);
+        protectPage(['admin', 'faculty', 'student']);
 
         $redirect = redirect_back_for_role();
         $content = clean_string($_POST['content'] ?? '', 5000);

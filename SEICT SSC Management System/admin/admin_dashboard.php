@@ -39,6 +39,8 @@ $users = $usersStmt->fetchAll();
 
 $posts = load_posts();
 $postCount = count($posts);
+$announcementPosts = array_values(array_filter($posts, static fn($post) => strtolower((string) ($post['category'] ?? '')) !== 'events' && strtolower((string) ($post['category'] ?? '')) !== 'event'));
+$eventPosts = array_values(array_filter($posts, static fn($post) => in_array(strtolower((string) ($post['category'] ?? '')), ['event', 'events'], true)));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -175,6 +177,21 @@ $postCount = count($posts);
                                 <span class="action-badge service-badge-online"><?php echo e($user['role']); ?></span>
                             </div>
                         <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="portal-card" id="departments" style="padding: 24px; margin-bottom: 24px;">
+                <h3 class="widget-title" style="margin-bottom: 12px;"><i class="fas fa-stream" style="margin-right: 8px;"></i>Published Community Feed</h3>
+                <p class="text-muted" style="margin-top: -4px; margin-bottom: 16px;">Announcements and events you publish now appear here and in the student/faculty feeds.</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;">
+                    <div class="portal-card" style="padding: 18px; background: #fffaf7;">
+                        <h4 class="text-maroon" style="margin: 0 0 10px; font-size: 1rem;">Announcements</h4>
+                        <?php if (empty($announcementPosts)): ?><p class="text-muted small">No announcements published yet.</p><?php else: foreach ($announcementPosts as $post): ?><article style="border:1px solid rgba(16,24,40,0.08);border-radius:10px;padding:12px;background:#fff;margin-bottom:10px;"> <strong><?php echo e($post['title'] ?? 'SEICT Update'); ?></strong><p class="text-muted small" style="margin:6px 0;"><?php echo e($post['content'] ?? ''); ?></p><span class="text-muted" style="font-size:0.8rem;">By <?php echo e($post['author'] ?? 'SEICT'); ?> • <?php echo e(date('M d, Y', strtotime((string) ($post['created_at'] ?? 'now')))); ?></span></article><?php endforeach; endif; ?>
+                    </div>
+                    <div class="portal-card" style="padding: 18px; background: #fffaf7;">
+                        <h4 class="text-maroon" style="margin: 0 0 10px; font-size: 1rem;">Events</h4>
+                        <?php if (empty($eventPosts)): ?><p class="text-muted small">No events published yet.</p><?php else: foreach ($eventPosts as $post): ?><article style="border:1px solid rgba(16,24,40,0.08);border-radius:10px;padding:12px;background:#fff;margin-bottom:10px;"> <strong><?php echo e($post['title'] ?? 'SEICT Event'); ?></strong><p class="text-muted small" style="margin:6px 0;"><?php echo e($post['content'] ?? ''); ?></p><span class="text-muted" style="font-size:0.8rem;">By <?php echo e($post['author'] ?? 'SEICT'); ?> • <?php echo e(date('M d, Y', strtotime((string) ($post['created_at'] ?? 'now')))); ?></span></article><?php endforeach; endif; ?>
                     </div>
                 </div>
             </div>
